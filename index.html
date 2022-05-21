@@ -1,0 +1,1305 @@
+<!doctype html> 
+<html> 
+	<head> 
+		<meta charset="UTF-8" />
+		<title>giocoCarte</title>
+		<script src="phaser.js"></script>
+		<script src="Chart.js"></script>
+		<style type="text/css">
+			body {
+				margin: 0;
+			}
+		</style>
+	</head>
+	<body onbeforeprint="beforePrintHandler()" background="assets/space.jpg">
+    <script type="text/javascript">
+
+			// Creazione del mazzo standard (28 rosse e 28 blu)
+			let deckStandard = {};
+			let i;
+			for(i=1;i<=56;i++) {
+				if(i<=28) {
+					deckStandard[i] = "blue";
+				}
+				else {
+					deckStandard[i] = "red";		
+				}
+			}
+			
+			// 38 rosse e 18 blu
+			let deck38_18 = {};
+			for(i=1;i<=56;i++) {
+				if(i<=38) {
+					deck38_18[i] = "red";
+				}
+				else {
+					deck38_18[i] = "blue";		
+				}
+			}
+			
+			// 48 rosse e 8 blu
+			let deck48_8 = {};
+			for(i=1;i<=56;i++) {
+				if(i<=48) {
+					deck48_8[i] = "red";
+				}
+				else {
+					deck48_8[i] = "blue";		
+				}
+			}
+			
+			
+			
+			let config = {
+				type: Phaser.AUTO,
+				width: 1920,
+				height: 1080,
+				transparent: true,
+				scale: {
+					mode: Phaser.Scale.FIT,
+					autoCenter: Phaser.Scale.CENTER_BOTH
+				},
+				physics: {
+					default: 'arcade',
+					arcade: {
+						gravity: { y: 300 },
+						debug: false
+					}
+				},
+				scene: {
+					preload: preload,
+					create: create,
+					update: update
+				}
+			};
+			
+			let game = new Phaser.Game(config);
+
+			function preload () {
+				// Assets
+				game.canvas.style.position = "absolute";
+				game.canvas.style.top = "0px";
+				// this.load.image('space', 'assets/space.jpg');
+				this.load.image('earth', 'assets/Robinson_projection_SW_v2.png');
+				this.load.image('red','assets/red.png');
+				this.load.image('blue','assets/blue.png');
+				this.load.image('+','assets/+.png');
+				this.load.image('-','assets/-.png');
+				this.load.image('empty_box','assets/box_vuoto.png');
+				this.load.image('trans','assets/trans.png');
+				this.load.image('ed','assets/ed.png');
+				this.load.image('edtrans','assets/edtrans.png');
+				this.load.image('Fermi','assets/Fermi.png');
+				this.load.image('CNR','assets/CNR.png');
+			}
+
+			function create () {
+				//Contatore scene
+				let scena = 1;
+				
+				// Contatori di segni
+				let plusPoli = 0;
+				let plusEq = 0;
+				let plusML = 0;
+				let minusPoli = 0;
+				let minusEq = 0;
+				let minusML = 0;
+				let plusFinal = 0;
+				let minusFinal = 0;
+				
+				//Array di segni
+				let plusesPoli = [];
+				let plusesEq = [];
+				let plusesML = [];
+				let minusesPoli = [];
+				let minusesEq = [];
+				let minusesML = [];
+				
+				let ctx1 = document.getElementById('chart1').getContext('2d');
+				let chart1 = new Chart(ctx1, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [0, 0],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Poli  |  Decennio '+scena,
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+				});
+				
+				let ctx2 = document.getElementById('chart2').getContext('2d');
+				let chart2 = new Chart(ctx2, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [0, 0],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Equatore  |  Decennio '+scena,
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+				});
+				
+				let ctx3 = document.getElementById('chart3').getContext('2d');
+				let chart3= new Chart(ctx3, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [0, 0],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Medie Latitudini  |  Decennio '+scena,
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+				});
+				
+				function beforePrintHandler () {
+					for (let id in Chart.instances) {
+						Chart.instances[id].resize();
+					}
+				}
+				
+				let game=this;
+				
+				//Deck in utilizzo
+				let deck_lista = [];
+				deck_lista.push(deckStandard);
+				deck_lista.push(deck38_18);
+				deck_lista.push(deck48_8);
+				
+				let deck_eq;
+				let deck_poli;
+				let deck_ml;
+				
+				let pescate = [];
+				
+				let i;
+				let n;
+				for(i=0;i<3;i++) {
+					do {
+						n = Math.floor(Math.random() * 3);
+					} while(pescate.indexOf(n)!= -1)
+					pescate.push(n);
+					if(i==0)
+						deck_poli = deck_lista[n];
+					else if(i==1)
+						deck_eq = deck_lista[n];
+					else 
+						deck_ml = deck_lista[n];
+				}
+				
+				let deck = deck_poli;
+				
+				// Numero del box cliccato
+				let nBox = 1;
+				
+				// Loghi
+				let Fermi = this.add.image(700,950,'Fermi');
+				Fermi.setInteractive();
+				Fermi.on('clicked',linkFermi,game);
+				
+				let CNR = this.add.image(1000,950,'CNR');
+				CNR.setInteractive();
+				CNR.on('clicked',linkCNR,game);
+				
+				// let space = this.add.image(600, 300, 'space');	//  Sfondo
+				let earth = this.add.image(900, 500, 'earth'); //  Terra
+				let intro = this.add.text(100,100,"Benvenuto!!\nPer iniziare premere il\nquadratino in alto a sinistra.",{ fontSize: '32px', color:"white"});
+				
+				// L'anno che si vede in alto
+				let anno = 1990;			
+				let anni = this.add.text(800,150,anno,{fontSize: '70px'});
+				anni.setVisible(false);
+				
+				// Caselle vuote
+				class empty_box {
+					constructor(x,y,name,game,n) {
+						let box = game.add.image(x,y,name);
+						box.n=n;
+						box.setInteractive();
+						box.on('clicked',clickHandler, game);
+						boxes.push(box);
+						console.log(nBox);
+					}
+				}
+				
+				// Transizione scene
+				let trans = this.add.image(1600,1000,'trans');
+				trans.setVisible(false);
+				
+				//Transizione finale
+				let edtrans = this.add.image(1600,1000,'edtrans');
+				edtrans.setVisible(false);
+				
+				//Array box
+				let boxes = [];
+				
+				// Poli
+				let box_1 = new empty_box(625,300,'empty_box',this,1);
+				let box_2 = new empty_box(685,300,'empty_box',this,2);
+				let box_3 = new empty_box(745,300,'empty_box',this,3);
+				let box_4 = new empty_box(805,300,'empty_box',this,4);
+				let box_5 = new empty_box(865,300,'empty_box',this,5);
+				let box_6 = new empty_box(925,300,'empty_box',this,6);
+				let box_7 = new empty_box(985,300,'empty_box',this,7);
+				let box_8 = new empty_box(1045,300,'empty_box',this,8);
+				let box_9 = new empty_box(1105,300,'empty_box',this,9);
+				let box_10 = new empty_box(1165,300,'empty_box',this,10);
+				// Equatore
+				let box_11 = new empty_box(625,500,'empty_box',this,11);
+				let box_12 = new empty_box(685,500,'empty_box',this,12);
+				let box_13 = new empty_box(745,500,'empty_box',this,13);
+				let box_14 = new empty_box(805,500,'empty_box',this,14);
+				let box_15 = new empty_box(865,500,'empty_box',this,15);
+				let box_16 = new empty_box(925,500,'empty_box',this,16);
+				let box_17 = new empty_box(985,500,'empty_box',this,17);
+				let box_18 = new empty_box(1045,500,'empty_box',this,18);
+				let box_19 = new empty_box(1105,500,'empty_box',this,19);
+				let box_20 = new empty_box(1165,500,'empty_box',this,20);
+				// Medie Latitudini
+				let box_21 = new empty_box(625,700,'empty_box',this,21);
+				let box_22 = new empty_box(685,700,'empty_box',this,22);
+				let box_23 = new empty_box(745,700,'empty_box',this,23);
+				let box_24 = new empty_box(805,700,'empty_box',this,24);
+				let box_25 = new empty_box(865,700,'empty_box',this,25);
+				let box_26 = new empty_box(925,700,'empty_box',this,26);
+				let box_27 = new empty_box(985,700,'empty_box',this,27);
+				let box_28 = new empty_box(1045,700,'empty_box',this,28);
+				let box_29 = new empty_box(1105,700,'empty_box',this,29);
+				let box_30 = new empty_box(1165,700,'empty_box',this,30);
+				
+				// Carte pescate
+				let drawn = [];
+				
+				this.input.on('gameobjectup',function (pointer, gameObject) {
+					gameObject.emit('clicked',gameObject);
+				}, this);
+				function clickHandler(box) {
+					if(nBox == box.n) {
+						anno++;
+						anni.setText(anno);
+						anni.setVisible(true);
+						intro.setVisible(false);
+						box.off('clicked',clickHandler);
+						box.input.enabled = false;
+						box.setVisible(false);
+						swap(box.x,box.y,game);
+						console.log(drawn);
+						nBox ++;
+						if(nBox==11) {
+							deck = deck_eq;
+							drawn = [];
+						}
+						else if(nBox==21) {
+							deck = deck_ml;
+							drawn = [];
+						}
+						else if(nBox==31) {
+                            if(scena<3) {
+                                trans.setVisible(true);
+                                trans.setInteractive();
+                                trans.on('clicked',traslazione, game);
+                                deck = deck_poli;
+                            }
+                            else {
+                                edtrans.setVisible(true);
+                                edtrans.setInteractive();
+                                edtrans.on('clicked',traslazione,game);
+                            }
+						}
+						else if(nBox==12 || nBox==22) {
+							anno = anno - 10;
+							anni.setText(anno);
+						}
+						else if(nBox==2 && scena==1) {
+							istruzione = game.add.text(50,150,"Adesso continua verso destra...",{ fontSize: '32px', color:"white"});
+							carte = game.add.text(50,20,"Le carte vengono estratte da un mazzo da 56 carte che è assegnato in modo casuale ad\nuna fascia. In base alla maggioranza di carte rosse o blu cambia l'andamento della\ntemperatura di quell'anno in quella fascia.",{ fontSize: '36px', color:"white"});
+						}
+						else if(nBox==3 && scena==1)
+							istruzione.setVisible(false);
+					}
+				}
+				function linkFermi(Fermi) {
+					window.open("https://www.fermi-mo.edu.it/pvw/app/MOIT0016/pvw_sito.php", "_bl﻿ank")﻿;
+				}
+				function linkCNR(CNR) {
+					window.open("https://www.cnr.it/it", "_bl﻿ank")﻿;
+				}
+				function traslazione(trans) {
+					for(i=0;i<30;i++) {
+                            boxes[i].setVisible(true);
+                            boxes[i].setInteractive();
+                            boxes[i].on('clicked',clickHandler, game);
+                            signs[i].destroy();
+                        }
+                        signs = [];
+                        drawn = [];
+                        deck = deck_poli;
+                        nBox = 1;
+                        scena++;
+                        plusesPoli.push(plusPoli);
+                        plusesEq.push(plusEq);
+                        plusesML.push(plusML);
+                        minusesPoli.push(minusPoli);
+                        minusesEq.push(minusEq);
+                        minusesML.push(minusML);
+                        plusPoli = 0;
+                        minusPoli = 0;
+                        plusEq=0;
+                        minusEq=0;
+                        plusML=0;
+                        minusML=0;
+                        trans.setVisible(false);
+                        chart1.options.title.text="Poli  |  Decennio " + scena;
+                        chart1.data.datasets[0].data[0] = plusPoli;
+                        chart1.data.datasets[0].data[1] = minusPoli;
+                        chart1.update();
+                        chart2.options.title.text="Equatore  |  Decennio " + scena;
+                        chart2.data.datasets[0].data[0] = plusEq;
+                        chart2.data.datasets[0].data[1] = minusEq;
+                        chart2.update();
+                        chart3.options.title.text="Medie Latitudini  |  Decennio " + scena;
+                        chart3.data.datasets[0].data[0] = plusML;
+                        chart3.data.datasets[0].data[1] = minusML;
+                        chart3.update();
+                        if(scena==4) {
+                        chart1.destroy();
+                        chart2.destroy();
+                        chart3.destroy();
+                        let ed = this.add.image(960,540, 'ed');
+                        endgame();
+                        
+					}
+				}
+				let signs = [];
+				
+				function swap(x,y,game) {
+					drawCards(deck, drawn, function(sign) {
+						let plus_minus = game.add.image(x,y,sign);
+						signs.push(plus_minus);
+					});
+				}
+				
+				let card1;
+				let card2;
+				let card3;
+				
+				function drawCards(deck, drawn, callback) {
+					let i = 0;
+					let j;
+					let colour = [];
+					const interval = setInterval(() => {
+						// Carta pescata
+						do {
+							number = Math.floor(Math.random() * 56) + 1;
+						} while(drawn.indexOf(number)!= -1)
+						drawn.push(number);
+						colour.push(deck[number]);
+						if(i==0) {
+							card1 = game.add.image(150,350,deck[number]);
+						}
+						else if(i==1)
+							card2 = game.add.image(150,550,deck[number]);
+						else {
+							card3 = game.add.image(150,750,deck[number]);
+							clearInterval(interval);
+							
+							let sign;
+							let contaR = 0;
+							for(j=0; j<3; j++) {
+								if(colour[j] == 'red')
+									contaR ++;
+							}
+							if (contaR == 0 || contaR == 1) {
+								if(nBox>1 && nBox <=11) 
+                                    minusPoli += 1;
+                                else if(nBox>11 && nBox<=21)
+                                    minusEq += 1;
+                                else
+                                    minusML += 1;
+								sign = '-';
+								minusFinal += 1;
+							}
+							else {
+								if(nBox>1 && nBox <=11) 
+                                    plusPoli += 1;
+                                else if(nBox>11 && nBox<=21)
+                                    plusEq += 1;
+                                else 
+                                    plusML += 1;
+								sign = '+';
+								plusFinal += 1;
+							}
+							
+							chart1.data.datasets[0].data[0] = plusPoli;
+							chart1.data.datasets[0].data[1] = minusPoli;
+							chart1.update();
+							
+							chart2.data.datasets[0].data[0] = plusEq;
+							chart2.data.datasets[0].data[1] = minusEq;
+							chart2.update();
+							
+							chart3.data.datasets[0].data[0] = plusML;
+							chart3.data.datasets[0].data[1] = minusML;
+							chart3.update();
+							
+							callback(sign);
+						}
+						i++;
+					}, 1000);
+
+				}
+				
+				function endgame() {
+                    //Porca puttana, finalmente
+                    let ctxPoli1 = document.getElementById('chartPoli1').getContext('2d');
+                    let ctxEq1 = document.getElementById('chartEq1').getContext('2d');
+                    let ctxML1 = document.getElementById('chartML1').getContext('2d');
+                    let ctxPoli2 = document.getElementById('chartPoli2').getContext('2d');
+                    let ctxEq2 = document.getElementById('chartEq2').getContext('2d');
+                    let ctxML2 = document.getElementById('chartML2').getContext('2d');
+                    let ctxPoli3 = document.getElementById('chartPoli3').getContext('2d');
+                    let ctxEq3 = document.getElementById('chartEq3').getContext('2d');
+                    let ctxML3 = document.getElementById('chartML3').getContext('2d');
+                    let ctxPoliM = document.getElementById('chartPoliM').getContext('2d');
+                    let ctxEqM = document.getElementById('chartEqM').getContext('2d');
+                    let ctxMLM = document.getElementById('chartMLM').getContext('2d');
+                    
+                    let plusMediaPoli = (plusesPoli[0] + plusesPoli[1] + plusesPoli[2])/3;
+                    let minusMediaPoli = (minusesPoli[0] + minusesPoli[1] + minusesPoli[2])/3;
+                    let plusMediaEq = (plusesEq[0] + plusesEq[1] + plusesEq[2])/3;
+                    let minusMediaEq = (minusesEq[0] + minusesEq[1] + minusesEq[2])/3;
+                    let plusMediaML = (plusesML[0] + plusesML[1] + plusesML[2])/3;
+                    let minusMediaML = (minusesML[0] + minusesML[1] + minusesML[2])/3;
+                
+                    let chartPoli1 = new Chart(ctxPoli1, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusesPoli[0], minusesPoli[0]],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Poli  |  Decennio 1',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                    let chartPoli2 = new Chart(ctxPoli2, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusesPoli[1], minusesPoli[1]],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Poli  |  Decennio 2',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                    let chartPoli3 = new Chart(ctxPoli3, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusesPoli[2], minusesPoli[2]],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Poli  |  Decennio 3',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                    let chartEq1 = new Chart(ctxEq1, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusesEq[0], minusesEq[0]],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Equatore  |  Decennio 1',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                    let chartEq2 = new Chart(ctxEq2, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusesEq[1], minusesEq[1]],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Equatore  |  Decennio 2',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                    let chartEq3 = new Chart(ctxEq3, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusesEq[2], minusesEq[2]],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Equatore  |  Decennio 3',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                    let chartML1 = new Chart(ctxML1, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusesML[0], minusesML[0]],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Medie Latitudini  |  Decennio 1',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                     let chartML2 = new Chart(ctxML2, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusesML[1], minusesML[1]],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Medie Latitudini  |  Decennio 2',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                     let chartML3 = new Chart(ctxML3, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusesML[2], minusesML[2]],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Medie Latitudini  |  Decennio 3',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                    
+                     let chartPoliM = new Chart(ctxPoliM, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusMediaPoli, minusMediaPoli],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Poli  |  Media',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                    let chartEqM = new Chart(ctxEqM, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusMediaEq, minusMediaEq],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Equatore  |  Media',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+                    let chartMLM = new Chart(ctxMLM, {
+					type: 'bar',
+					data: {
+						labels: ['+', '-'],
+						datasets: [{
+							data: [plusMediaML, minusMediaML],
+							backgroundColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderColor: [
+								'rgba(255, 0, 0, 1)',
+								'rgba(0, 0, 255, 1)'
+							],
+							borderWidth: 1
+						}]
+					},
+				options: {
+						maintainAspectRatio: false,
+						legend: {
+							labels: {
+								fontSize:0
+								//fontSize: 18
+							}
+						},
+						title: {
+							display: true,
+							text: 'Medie Latitudini  |  Media',
+							fontSize:15,
+							fontColor: "white",
+							fontStyle: "bold"
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 15,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									fontColor: "white",
+									fontSize: 20,
+									fontStyle: "bold",
+									//stepSize: 1,
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+                    });
+				}
+			}
+			
+			function update () {}
+		</script>
+		<div class="chart-container" style="position: absolute; right:10%; height:25vh; width:15vw; bottom:65%; z-index:1">
+			<canvas id="chart1" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:10%; height:25vh; width:15vw; bottom:40%; z-index:1">
+			<canvas id="chart2" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:10%; height:25vh; width:15vw; bottom:15%; z-index:1">
+			<canvas id="chart3" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:75%; height:25vh; width:15vw; bottom:65%; z-index:1">
+			<canvas id="chartPoli1" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:75%; height:25vh; width:15vw; bottom:40%; z-index:1">
+			<canvas id="chartEq1" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:75%; height:25vh; width:15vw; bottom:15%; z-index:1">
+			<canvas id="chartML1" width="60" height="60"></canvas>
+		</div>
+        <div class="chart-container" style="position: absolute; right:55%; height:25vh; width:15vw; bottom:65%; z-index:1">
+			<canvas id="chartPoli2" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:55%; height:25vh; width:15vw; bottom:40%; z-index:1">
+			<canvas id="chartEq2" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:55%; height:25vh; width:15vw; bottom:15%; z-index:1">
+			<canvas id="chartML2" width="60" height="60"></canvas>
+		</div>
+        <div class="chart-container" style="position: absolute; right:35%; height:25vh; width:15vw; bottom:65%; z-index:1">
+			<canvas id="chartPoli3" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:35%; height:25vh; width:15vw; bottom:40%; z-index:1">
+			<canvas id="chartEq3" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:35%; height:25vh; width:15vw; bottom:15%; z-index:1">
+			<canvas id="chartML3" width="60" height="60"></canvas>
+		</div>	
+		<div class="chart-container" style="position: absolute; right:12%; height:25vh; width:15vw; bottom:65%; z-index:1">
+			<canvas id="chartPoliM" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:12%; height:25vh; width:15vw; bottom:40%; z-index:1">
+			<canvas id="chartEqM" width="60" height="60"></canvas>
+		</div>
+		<div class="chart-container" style="position: absolute; right:12%; height:25vh; width:15vw; bottom:15%; z-index:1">
+			<canvas id="chartMLM" width="60" height="60"></canvas>
+		</div>
+	</body>
+</html>
