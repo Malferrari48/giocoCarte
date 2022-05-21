@@ -1,5 +1,5 @@
 # giocoCarte
-This project was carried out by Francesco Malferrari (me) and Lorenzo Ferrarini in 2019.
+This project was carried out by Francesco Malferrari (me) and Lorenzo Ferrarini (https://github.com/LawrenceOfAstora) in 2019.
 
 It represents a card game commissioned by the CNR (Consiglio Nazionale delle Ricerche) on climate change during the second quarter of the last year of ITIS Fermi high school in Modena.
 
